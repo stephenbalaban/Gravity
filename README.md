@@ -1,7 +1,7 @@
 Gravity
 =======
 
-[![You are a tiny capsule stuck in the vastness of space.](images/Gravity.png)](http://www.stephenbalaban.com/wp-content/uploads/2014/11/Gravity.html)
+[![You are a tiny capsule stuck in the vastness of space.](images/Gravity-animated.gif)](http://www.stephenbalaban.com/wp-content/uploads/2014/11/Gravity.html)
 
 An orbital simulation game written in Elm.
 
