@@ -1,4 +1,4 @@
--- Click anywhere on the screen to apply thrust to the white space capsule.
+-- Touch anywhere on the screen to apply thrust to the white space capsule.
 
 import Window
 import Touch
