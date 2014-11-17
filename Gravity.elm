@@ -190,7 +190,7 @@ renderUniverse (w', h') universe =
     let ship = head universe.objects
         forms =  velocityVectorForm ship :: accelerationVectorForm ship
                                          :: universeForms universe
-    in  collage w' h' ([ toForm (tiledImage w' h' "images/stars.png")
+    in  collage w' h' ([ toForm (tiledImage w' h' "stars.png")
                        , velocityVectorForm ship
                        , accelerationVectorForm ship
                        ] ++ (universeForms universe))
