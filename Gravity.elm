@@ -203,7 +203,7 @@ touchPosition touches =
     if isEmpty touches
     then emptyPosition
     else let touch = head touches
-         in  (touch.x0, touch.y0)
+         in  (touch.x, touch.y)
 
 currentTouchPosition : Signal (Int, Int)
 currentTouchPosition =
@@ -211,7 +211,7 @@ currentTouchPosition =
 
 hasTouch : Signal Bool
 hasTouch =
-    lift isEmpty Touch.touches
+    lift (\list -> not (isEmpty list)) Touch.touches
 
 input : Signal ((Int, Int), (Int, Int), Bool)
 input = sampleOn (fps inputFPS)
