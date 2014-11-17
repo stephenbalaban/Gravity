@@ -12,21 +12,17 @@ metersPerPixel = solarSystemDiameter / 5000 -- meters / pixel
 mercuryCapsuleMass = 2000 -- kg
 cometMass = 2.2e14 -- Halley's comet's mass is 2.2e14 kg.
 rocketAcc = 0.003755 -- m / s^2
-
-rocketThrust : Float -- Newtons
-rocketThrust = mercuryCapsuleMass * rocketAcc -- F = ma : (N)
-
--- The Gravitational Constant
 gravitationalConstant = 6.67384 * 10e-11 -- m^3 / kg s^2
-
+earthMass = 5.97219 * 10e24
+earthOrbitalVelocity = 300000
+sunMass = 1.98855 * 10e30
+sunOrbitalVelocity = 0
 -- An Astronomical Unit (AU) is about the distance from the Sun to the Earth.
 au = 149597870700 -- meters
 
-earthMass = 5.97219 * 10e24
-earthOrbitalVelocity = 300000
+rocketThrust : Float
+rocketThrust = mercuryCapsuleMass * rocketAcc -- F = ma : (Newtons)
 
-sunMass = 1.98855 * 10e30
-sunOrbitalVelocity = 0
 
 type Point a =
     { a | x : Float
@@ -73,6 +69,7 @@ comet pos vel =
     generateBody pos vel cometMass lightRed 4 "" False
 
 -- Physical Objects --
+
 sun = generateBody { x=0, y=0 } { x=0, y=sunOrbitalVelocity }
                    sunMass lightYellow 30 "☉" False
 
