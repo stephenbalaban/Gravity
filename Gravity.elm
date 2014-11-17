@@ -3,7 +3,7 @@
 import Window
 import Mouse
 
-epsilon = 0.01 -- Minimal distance while still applying gravitational force.
+epsilon = 0.01 -- Minimal distance to still apply gravitational force.
 timeDelta = 8000
 inputFPS = 60
 uranusSemiMajorAxis = 2.8706714e+12 -- meters
@@ -17,7 +17,7 @@ rocketThrust : Float -- Newtons
 rocketThrust = mercuryCapsuleMass * rocketAcc -- F = ma : (N)
 
 -- The Gravitational Constant
-g = 6.67384 * 10e-11 -- m^3 / kg s^2
+gravitationalConstant = 6.67384 * 10e-11 -- m^3 / kg s^2
 
 -- An Astronomical Unit (AU) is about the distance from the Sun to the Earth.
 au = 149597870700 -- meters
@@ -28,58 +28,80 @@ earthOrbitalVelocity = 300000
 sunMass = 1.98855 * 10e30
 sunOrbitalVelocity = 0
 
-type Point a = { a | x:Float, y:Float }
+type Point a =
+    { a | x : Float
+        , y : Float
+        }
 
-type PhysicalObject a = { a | pos:(Point {}), vel:(Point {}),
-                              acc:(Point {}), mass:Float,
-                              thrustable:Bool, form:Form }
+type PhysicalObject a =
+    { a | pos : Point {}
+        , vel : Point {}
+        , acc : Point {}
+        , mass : Float
+        , thrustable : Bool
+        , form : Form
+        }
 
 type Ship a = PhysicalObject a
 
-type Universe = {
-    objects:[PhysicalObject {}]
-}
+type Universe =
+    { objects : [ PhysicalObject {} ]
+    }
 
--- contert meters -> pixels
-metersToPixels meters = meters / metersPerPixel
+metersToPixels meters =
+    meters / metersPerPixel
 
+formGen : Point {} -> Color -> Float -> String -> Form
 formGen pos color radius name =
     move (pos.x / metersPerPixel, pos.y / metersPerPixel)
-         (group [ filled color (circle radius) , toForm (plainText name) ])
+         (group [ filled color (circle radius)
+                , toForm (plainText name) ])
 
+generateBody : Point {} -> Point {} -> Float -> Color -> Float -> String
+            -> Bool -> PhysicalObject {}
 generateBody pos vel mass color radius name thrustable =
-    { pos = pos, vel = vel, acc = { x = 0, y = 0 }, mass = mass,
-      thrustable = thrustable, form = formGen pos color radius name }
+    { pos=pos
+    , vel=vel
+    , acc={ x=0, y=0 }
+    , mass=mass
+    , thrustable=thrustable
+    , form=formGen pos color radius name
+    }
+
+comet : Point {} -> Point {} -> PhysicalObject {}
+comet pos vel =
+    generateBody pos vel cometMass lightRed 4 "" False
 
 -- Physical Objects --
-sun = generateBody { x = 0, y = 0 } { x = 0, y = sunOrbitalVelocity }
+sun = generateBody { x=0, y=0 } { x=0, y=sunOrbitalVelocity }
                    sunMass lightYellow 30 "☉" False
 
-earth = generateBody { x = sun.pos.x + au, y = sun.pos.y }
-                     { x = 0, y = earthOrbitalVelocity }
+earth = generateBody { x=sun.pos.x + au, y=sun.pos.y }
+                     { x=0, y=earthOrbitalVelocity }
                      earthMass lightBlue 10 "⊕" False
 
-ship = generateBody { x = earth.pos.x + 200000000, y = earth.pos.y }
-                    { x = 0, y = earthOrbitalVelocity + 10000 }
+ship = generateBody { x=earth.pos.x + 200000000, y=earth.pos.y }
+                    { x=0, y=earthOrbitalVelocity + 10000 }
                     mercuryCapsuleMass white 3 "" True
 
-comet pos vel = generateBody pos vel cometMass lightRed 4 "" False
+comet1 = comet { x=au, y=au } { x=-200000, y=80000 }
+comet2 = comet { x=au, y=-au } { x=-230000, y=-20000 }
+comet3 = comet { x=-au, y=au } { x=250000, y=150000 }
+comet4 = comet { x=au, y=-2 * au } { x=-200000, y=80000 }
 
-comet1 = comet { x = au, y = au } { x = -200000, y = 80000 }
-comet2 = comet { x = au, y = -au } { x = -230000, y = -20000 }
-comet3 = comet { x = -au, y = au } { x = 250000, y = 150000 }
-comet4 = comet { x = au, y = -2 * au } { x = -200000, y = 80000 }
-
-theUniverse = { objects = [ ship, sun, earth
-                          , comet1, comet2, comet3, comet4 ] }
+theUniverse : Universe
+theUniverse = { objects=[ ship, sun, earth
+                        , comet1, comet2, comet3, comet4 ] }
 
 -- Physics Code --
 
 distance : PhysicalObject a -> PhysicalObject a -> Float
-distance a b = sqrt ((a.pos.x - b.pos.x)^2 + (a.pos.y - b.pos.y)^2)
+distance a b =
+    sqrt ((a.pos.x - b.pos.x)^2 + (a.pos.y - b.pos.y)^2)
 
 universeForms : Universe -> [Form]
-universeForms u = map (\o -> o.form) u.objects
+universeForms u =
+    map (\o -> o.form) u.objects
 
 -- force exhibited by B onto A
 force : PhysicalObject a -> PhysicalObject a -> (Float, Float)
@@ -88,14 +110,15 @@ force a b =
         dist = distance a b
         unitX = (a.pos.x - b.pos.x) / dist
         unitY = (a.pos.y - b.pos.y) / dist
-        f = -(g * a.mass * b.mass / dist^2) -- F = GM1M2 / r^2
+        -- F = GM1M2 / r^2
+        f = -(gravitationalConstant * a.mass * b.mass / dist^2)
         (forceX, forceY) = (f * unitX, f * unitY)
     in if dist < epsilon
        then (0, 0)
        else (forceX, forceY)
 
 -- generate thrust (force in newtons) from the rocket
-thrust : Ship {} -> (Int, Int) -> (Int, Int) -> Bool -> (Float, Float)
+thrust : Ship a -> (Int, Int) -> (Int, Int) -> Bool -> (Float, Float)
 thrust ship (w', h') (mx, my) mouseDown =
     if mouseDown
     then let thrustVec = thrustVector (w', h') (mx, my) ship
@@ -104,9 +127,12 @@ thrust ship (w', h') (mx, my) mouseDown =
     else (0, 0)
 
 tupleAdd : (Float, Float) -> (Float, Float) -> (Float, Float)
-tupleAdd (a0, b0) (a1, b1) = (a0 + a1, b0 + b1)
+tupleAdd (a0, b0) (a1, b1) =
+    (a0 + a1, b0 + b1)
 
 -- Move an object given the universe of physical objects.
+moveObject : Float -> (Int, Int) -> (Int, Int) -> Bool -> Ship a
+          -> [PhysicalObject {}] -> PhysicalObject {} -> PhysicalObject {}
 moveObject dt (w', h') (mx, my) mdown ship allobjects object =
     let forces = map (force object) allobjects
         (forceX, forceY) = foldr tupleAdd (0, 0) forces
@@ -133,19 +159,24 @@ nextUniverse ((w', h'), mpos, mdown) universe =
     in { universe | objects <- map mvFn universe.objects }
 
 vector : Color -> Float -> Point a -> Point a -> Form
-vector color scale originPt offsetPt = traced (solid color)
-    [ ( metersToPixels originPt.x, metersToPixels originPt.y )
+vector color scale originPt offsetPt =
+    traced (solid color)
+      [ ( metersToPixels originPt.x, metersToPixels originPt.y )
       , ( metersToPixels originPt.x + scale * metersToPixels offsetPt.x
-      , metersToPixels originPt.y + scale * metersToPixels offsetPt.y ) ]
+        , metersToPixels originPt.y + scale * metersToPixels offsetPt.y ) ]
 
 velocityScaleFactor = 1e5
 accelerationScaleFactor= 1e11
 
-velocityVectorForm ship = vector red velocityScaleFactor ship.pos ship.vel
-accelerationVectorForm ship = vector blue accelerationScaleFactor ship.pos
-                                     ship.acc
+velocityVectorForm : Ship a -> Form
+velocityVectorForm ship =
+    vector red velocityScaleFactor ship.pos ship.vel
 
-thrustVector : (Int, Int) -> (Int, Int) -> Ship {} -> Point {}
+accelerationVectorForm : Ship a -> Form
+accelerationVectorForm ship =
+    vector blue accelerationScaleFactor ship.pos ship.acc
+
+thrustVector : (Int, Int) -> (Int, Int) -> Ship a -> Point {}
 thrustVector (w', h') (mx, my) ship =
     let (sx, sy) = (metersToPixels ship.pos.x, metersToPixels ship.pos.y)
         (vxc, vyc) = relativeToCenter (w', h') (mx, my) -- vector to the center
@@ -154,10 +185,9 @@ thrustVector (w', h') (mx, my) ship =
     in vfinish
 
 relativeToCenter : (Int, Int) -> (Int, Int) -> (Float, Float)
-relativeToCenter (w', h') (x, y) = ( toFloat x - toFloat w' / 2
-                                   , -(toFloat y) + toFloat h' / 2)
+relativeToCenter (w', h') (x, y) =
+    ( toFloat x - toFloat w' / 2, -(toFloat y) + toFloat h' / 2 )
 
- -- rect (toFloat w') (toFloat h') |> (filled black)
 renderUniverse : (Int, Int) -> Universe -> Element
 renderUniverse (w', h') universe =
     let ship = head universe.objects
@@ -168,8 +198,11 @@ renderUniverse (w', h') universe =
                        , accelerationVectorForm ship
                        ] ++ (universeForms universe))
 
+input : Signal ((Int, Int), (Int, Int), Bool)
 input = sampleOn (fps inputFPS)
-                 ((,,) <~ Window.dimensions ~ Mouse.position ~ Mouse.isDown)
+                 ((,,) <~ Window.dimensions
+                        ~ Mouse.position
+                        ~ Mouse.isDown)
 
 main = renderUniverse <~ Window.dimensions
                        ~ (foldp nextUniverse theUniverse input)
