@@ -216,7 +216,7 @@ hasTouch =
 input : Signal ((Int, Int), (Int, Int), Bool)
 input = sampleOn (fps inputFPS)
                  ((,,) <~ Window.dimensions
-                        ~ currentTouchLocation
+                        ~ currentTouchPosition
                         ~ hasTouch)
 
 main = renderUniverse <~ Window.dimensions
