@@ -1,7 +1,7 @@
 -- Click anywhere on the screen to apply thrust to the white space capsule.
 
 import Window
-import Mouse
+import Touch
 
 epsilon = 0.01 -- Minimal distance to still apply gravitational force.
 timeDelta = 8000
@@ -195,11 +195,29 @@ renderUniverse (w', h') universe =
                        , accelerationVectorForm ship
                        ] ++ (universeForms universe))
 
+emptyPosition : (Int, Int)
+emptyPosition = (0, 0)
+
+touchPosition : [Touch.Touch] -> (Int, Int)
+touchPosition touches =
+    if isEmpty touches
+    then emptyPosition
+    else let touch = head touches
+         in  (touch.x0, touch.y0)
+
+currentTouchPosition : Signal (Int, Int)
+currentTouchPosition =
+    lift touchPosition Touch.touches
+
+hasTouch : Signal Bool
+hasTouch =
+    lift isEmpty Touch.touches
+
 input : Signal ((Int, Int), (Int, Int), Bool)
 input = sampleOn (fps inputFPS)
                  ((,,) <~ Window.dimensions
-                        ~ Mouse.position
-                        ~ Mouse.isDown)
+                        ~ currentTouchLocation
+                        ~ hasTouch)
 
 main = renderUniverse <~ Window.dimensions
                        ~ (foldp nextUniverse theUniverse input)
