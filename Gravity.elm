@@ -139,11 +139,11 @@ moveObject dt (w', h') (mx, my) mdown ship allobjects object =
         (totalForceX, totalForceY) = (forceX + thrustX, forceY + thrustY)
         -- F = ma -> a = F / m
         (ax', ay') = (totalForceX / object.mass, totalForceY / object.mass)
+        (vx', vy') = (object.vel.x + ax' * dt, object.vel.y + ay' * dt)
     in { acc = { x = ax', y = ay'}
-       , vel = { x = object.vel.x + ax' * dt
-               , y = object.vel.y + ay' * dt }
-       , pos = { x = object.pos.x + object.vel.x * dt
-               , y = object.pos.y + object.vel.y * dt }
+       , vel = { x = vx', y = vy'}
+       , pos = { x = object.pos.x + vx' * dt
+               , y = object.pos.y + vy' * dt }
        , mass = object.mass
        , thrustable = object.thrustable
        , form = move ( object.vel.x * dt / metersPerPixel
