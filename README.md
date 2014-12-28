@@ -15,6 +15,4 @@ Click or touch on the screen to apply thrust to your capsule.
 
 ## TODO
 
-1. Normalize vectors for conservation of energy. Currently errors accumulating
-   through the use of euler's method is causing bodies to gain energy.
-2. Multiplayer.
+1. Multiplayer.
