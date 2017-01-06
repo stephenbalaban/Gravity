@@ -13,6 +13,10 @@ Click or touch on the screen to apply thrust to your capsule.
 
 [Click here to try it out.](http://www.stephenbalaban.com/wp-content/uploads/2014/11/Gravity.html)
 
+## Run
+
+Clone project and run in elm-reactor
+
 ## TODO
 
 1. Multiplayer.
