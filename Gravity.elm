@@ -150,7 +150,7 @@ renderUniverse model =
     in
         collage model.width
             model.height
-            ([ toForm (Element.tiledImage model.width model.height "stars.png")
+            ([ toForm (Element.tiledImage model.width model.height "./images/stars.png")
              , velocityVectorForm ship
              , accelerationVectorForm ship
              ]
